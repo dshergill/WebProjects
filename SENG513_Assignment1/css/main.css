@@ -6,12 +6,13 @@ h1 {
     background-clip: border-box;
     font-family: "Segoe UI", Arial, sans-serif;
     text-align: center;
-    font-size: 37px;
+    font-size: 47px;
     letter-spacing: 3px;
     font-weight: bold;
 }
 
 h2{
+    font-size: 37px;
     color: goldenrod;
     font-weight: bold;
 }
@@ -25,6 +26,7 @@ h2{
 p1#par1 {
     background-clip: border-box;
     font-weight: bold;
+    font-size: 30px;
 }
 div#page-contents {
     color: goldenrod;
@@ -34,8 +36,9 @@ div#page-contents {
 
 ol {
     text-align: inherit;
+    font-size: 30px;
 }
-table#food-pics {
+table#instruction-pics {
     border-color: goldenrod;
     border-style: solid;
 }
@@ -80,7 +83,7 @@ th {
     color: goldenrod;
     text-align: center;
     background-color: coral;
-    font-size: 22px;
+    font-size: 30px;
     text-decoration: none;
     font-weight: bold;
     display: table-cell;
@@ -98,5 +101,10 @@ th {
 .centered-table {
     margin-right: auto;
     margin-left: auto;
+}
+
+.food-pics {
+    height: 175px;
+    width: 175px;
 }
 
