@@ -60,11 +60,14 @@ function getStats(txt) {
                     arrayOfPalindromes.push(words[w]);
                 }
             }
+            let uniquePalindromes = arrayOfPalindromes.filter(function (item, pos) {
+                return arrayOfPalindromes.indexOf(item) == pos;
+            })
             return {
-                arrayOfPalindromes
+                uniquePalindromes
             }
         }
-        let palindromes = getPalindromes().arrayOfPalindromes;
+        let palindromes = getPalindromes().uniquePalindromes;
 
         function getLongestWords() {
             let words = getListOfWords().listOfWords;
