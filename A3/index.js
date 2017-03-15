@@ -26,12 +26,44 @@ io.on('connection', function (socket) {
     socket.on('new message', function (data) {
         var currentTime = new Date().toTimeString();
         // we tell the client to execute 'new message'
-        chatLog.push(data);
-        socket.broadcast.emit('new message', {
+        chatLog.push({
             username: socket.username,
             timeStamp: currentTime,
             message: data
         });
+        io.emit('new message', {
+            username: socket.username,
+            timeStamp: currentTime,
+            message: data
+        });
+    });
+
+    // when the client types /nick to change their username
+    socket.on('change username', function (requestedUsername) {
+        var nameAlreadyExists = false;
+        for (var i = 0; i<usernames.length; i++) {
+            if (usernames[i] == requestedUsername) {
+                nameAlreadyExists = true;
+            }
+        }
+        if (!nameAlreadyExists) {
+            usernames.push(requestedUsername);
+            var index = usernames.indexOf(socket.username);
+            if (index > -1) {
+                usernames.splice(index, 1)
+            }
+            socket.username = requestedUsername;
+            io.emit('request accepted', {
+                name: requestedUsername
+            });
+        }
+        else {
+            socket.emit('request denied');
+        }
+    });
+
+    socket.on('change color', function (requestedColor) {
+
     });
 
     // when the client emits 'add user', this listens and executes
@@ -43,17 +75,15 @@ io.on('connection', function (socket) {
         socket.username = username;
 
         ++numUsers;
-        addedUser = true;
         socket.emit('login', {
-            numUsers: numUsers
-        });
-        socket.emit('updateLog', {
+            numUsers: numUsers,
             chatLog: chatLog
         });
         // echo globally (all clients) that a person has connected
         socket.broadcast.emit('user joined', {
             username: socket.username,
-            numUsers: numUsers
+            numUsers: numUsers,
+            usernames: usernames
         });
 
         callback(socket.username);

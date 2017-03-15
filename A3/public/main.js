@@ -1,6 +1,5 @@
 $(function() {
     var FADE_TIME = 150; // ms
-    var TYPING_TIMER_LENGTH = 400; // ms
     var COLORS = [
         '#e21400', '#91580f', '#f8a700', '#f78b00',
         '#58dc00', '#287b00', '#a8f07a', '#4ae8c4',
@@ -15,6 +14,7 @@ $(function() {
 
     var $loginPage = $('.login.page'); // The login page
     var $chatPage = $('.chat.page'); // The chatroom page
+    var $usersPage = $('.users.page'); // List of online users
 
     // Prompt for setting a username
     var username;
@@ -31,9 +31,11 @@ $(function() {
         setUsername();
         $loginPage.fadeOut();
         $chatPage.show();
+        $usersPage.show();
         $loginPage.off('click');
         $currentInput = $inputMessage.focus();
     }
+
 
     function addParticipantsMessage (data) {
         var message = '';
@@ -57,28 +59,41 @@ $(function() {
     // Sends a chat message
     function sendMessage () {
         var message = $inputMessage.val();
-        // Prevent markup from being injected into the message
-        message = cleanInput(message);
+
         // if there is a non-empty message and a socket connection
         if (message && connected) {
-            $inputMessage.val('');
-            addChatMessage({
-                username: username,
-                message: message
-            });
-            // tell server to execute 'new message' and send along one parameter
-            socket.emit('new message', message);
+            if (message.toString().indexOf('/nick') == 0) {
+                var splitMessage = message.toString().split(' ');
+                var requestedUsername = splitMessage[1];
+                $inputMessage.val('');
+                socket.emit('change username', requestedUsername);
+            }
+            else if (message.toString().indexOf('/nickcolor') == 0) {
+                var splitMessage = message.toString().split(' ');
+                var requestedColor = splitMessage[1];
+                $inputMessage.val('');
+                socket.emit('change color', requestedColor);
+            }
+
+            else {
+                $inputMessage.val('');
+                // tell server to execute 'new message' and send along one parameter
+                socket.emit('new message', message);
+            }
         }
     }
-
+    function addOnlineUser (data) {
+        var $el = $('<li>').addClass('user').text(data.username);
+        $chatPage.append($el);
+    }
     // Log a message
     function log (message, options) {
         var $el = $('<li>').addClass('log').text(message);
         addMessageElement($el, options);
     }
-    function addMessageLog (data, options) {
-        for (var m in data.chatLog) {
-            addChatMessage(m)
+    function addLoggedMessages(arrayOfMessages) {
+        for (var i=0; i<arrayOfMessages.length; i++) {
+            addChatMessage(arrayOfMessages[i]);
         }
     }
 
@@ -91,10 +106,8 @@ $(function() {
         var $messageBodyDiv = $('<span class="messageBody">')
             .text("[" + data.timeStamp + "]" + ":" + data.message);
 
-        var typingClass = data.typing ? 'typing' : '';
         var $messageDiv = $('<li class="message"/>')
             .data('username', data.username)
-            .addClass(typingClass)
             .append($usernameDiv, $messageBodyDiv);
 
         addMessageElement($messageDiv, options);
@@ -129,11 +142,6 @@ $(function() {
             $messages.append($el);
         }
         $messages[0].scrollTop = $messages[0].scrollHeight;
-    }
-
-    // Prevents input from having injected markup
-    function cleanInput (input) {
-        return $('<div/>').text(input).text();
     }
 
 
@@ -185,15 +193,17 @@ $(function() {
         connected = true;
         // Display the welcome message
         var message = "Welcome";
+        addLoggedMessages(data.chatLog);
         log(message, {
             prepend: true
         });
+
         addParticipantsMessage(data);
     });
 
     socket.on('updateLog', function (data) {
         connected = true;
-        addMessageLog(data);
+        addChatMessage(data);
     })
 
     // Whenever the server emits 'new message', update the chat body
@@ -201,9 +211,20 @@ $(function() {
         addChatMessage(data);
     });
 
+    //When a user successfully changes their username
+    socket.on('request accepted', function (data) {
+        log('Name changed to: ' + data.name)
+    });
+
+    //When a user unsuccessfully changes their username
+    socket.on('request denied', function (data) {
+        log('That name is already taken')
+    });
+
     // Whenever the server emits 'user joined', log it in the chat body
     socket.on('user joined', function (data) {
         log(data.username + ' joined');
+        addOnlineUser(data);
         addParticipantsMessage(data);
     });
 
