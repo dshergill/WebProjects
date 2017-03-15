@@ -27,9 +27,8 @@ html, body {
 }
 
 ul {
-    display: inline-block;
 
-    /*list-style: none;*/
+    list-style: none;
     word-wrap: break-word;
 }
 
