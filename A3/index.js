@@ -17,6 +17,16 @@ app.use(express.static(__dirname + '/public'));
 var numUsers = 0;
 var usernames = [];
 var chatLog = [];
+var usernameColors = {};
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
 
 io.on('connection', function (socket) {
     var addedUser = false;
@@ -31,16 +41,19 @@ io.on('connection', function (socket) {
             timeStamp: currentTime,
             message: data
         });
+
         io.emit('new message', {
             username: socket.username,
             timeStamp: currentTime,
-            message: data
+            message: data,
+            color: usernameColors[socket.username]
         });
     });
 
     // when the client types /nick to change their username
     socket.on('change username', function (requestedUsername) {
         var nameAlreadyExists = false;
+        var oldName = socket.username;
         for (var i = 0; i<usernames.length; i++) {
             if (usernames[i] == requestedUsername) {
                 nameAlreadyExists = true;
@@ -48,13 +61,15 @@ io.on('connection', function (socket) {
         }
         if (!nameAlreadyExists) {
             usernames.push(requestedUsername);
+            usernameColors[requestedUsername] = getRandomColor();
             var index = usernames.indexOf(socket.username);
             if (index > -1) {
                 usernames.splice(index, 1)
             }
             socket.username = requestedUsername;
             io.emit('request accepted', {
-                name: requestedUsername
+                name: requestedUsername,
+                oldName: oldName
             });
         }
         else {
@@ -63,7 +78,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('change color', function (requestedColor) {
-
+        usernameColors[socket.username] = "#" + requestedColor;
     });
 
     // when the client emits 'add user', this listens and executes
@@ -71,19 +86,21 @@ io.on('connection', function (socket) {
 
         var username = "person" + numUsers.toString();
         usernames.push(username);
+        usernameColors[username] = getRandomColor();
+        console.log(usernameColors[username]);
         // we store the username in the socket session for this client
         socket.username = username;
-
         ++numUsers;
         socket.emit('login', {
+            username: socket.username,
             numUsers: numUsers,
-            chatLog: chatLog
+            chatLog: chatLog,
+            usernames: usernames
         });
         // echo globally (all clients) that a person has connected
         socket.broadcast.emit('user joined', {
             username: socket.username,
-            numUsers: numUsers,
-            usernames: usernames
+            numUsers: numUsers
         });
 
         callback(socket.username);

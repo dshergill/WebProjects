@@ -27,7 +27,9 @@ html, body {
 }
 
 ul {
-    list-style: none;
+    display: inline-block;
+
+    /*list-style: none;*/
     word-wrap: break-word;
 }
 
@@ -37,20 +39,14 @@ ul {
     height: 100%;
     margin: 0;
     padding: 0;
-    width: 80%;
+    width: 100%;
     position: relative;
-}
-.online.users {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    width: 20%;
 }
 
 .page {
     height: 100%;
     position: absolute;
-    width: 100%;
+    width: 90%;
 }
 
 /* Login Page */
@@ -96,16 +92,21 @@ ul {
 /* Chat page */
 
 .chat.page {
-    display: none;
+    display: inline;
+    float: left;
 }
 
 .online.users {
-    display: none;
+    display: inline;
+    float: right;
 }
 
 /* Font */
 
 .messages {
+    font-size: 150%;
+}
+.users {
     font-size: 150%;
 }
 
@@ -120,7 +121,7 @@ ul {
     text-align: center;
 }
 
-/* Messages */
+/* Messages & Users*/
 
 .chatArea {
     height: 100%;
@@ -133,10 +134,13 @@ ul {
     overflow-y: scroll;
     padding: 10px 20px 10px 20px;
 }
-
-.message.typing .messageBody {
-    color: gray;
+.users {
+    height: 100%;
+    margin: 0;
+    padding: 10px 20px 10px 20px;
+    overflow-y: scroll;
 }
+
 
 .username {
     font-weight: 700;
